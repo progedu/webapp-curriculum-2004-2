@@ -1,6 +1,6 @@
-object AcademicResults extends  App {
+object AcademicResults extends App {
 
-  private[this] val results = Map(
+  val results = Map(
     "taro" -> Some(90),
     "jiro" -> None
   )
@@ -12,13 +12,10 @@ object AcademicResults extends  App {
   case object ResultNotFound extends Error
 
   def find(name: String): Result = {
-    results.get(name) match {
-      case Some(pointOpt) => pointOpt match {
-        case Some(point) => Point(point)
-        case None => ResultNotFound
-      }
-      case None => StudentNotFound
-    }
+    (for {
+      pointOpt <- results.get(name).toRight(StudentNotFound).right
+      point <- pointOpt.toRight(ResultNotFound).right
+    } yield Point(point)).merge
   }
 
   println(find("taro")) // Point(90)
