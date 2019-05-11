@@ -12,13 +12,10 @@ object AcademicResults extends  App {
   case object ResultNotFound extends Error
 
   def find(name: String): Result = {
-    results.get(name) match {
-      case Some(pointOpt) => pointOpt match {
-        case Some(point) => Point(point)
-        case None => ResultNotFound
-      }
-      case None => StudentNotFound
-    }
+    (for {
+      pointOpt <- results.get(name).toRight(StudentNotFound) // 点数をOption[Int]で取得。Noneの時はユーザーが存在しない
+      point <- pointOpt.toRight(ResultNotFound) // 点数がNoneの場合は点数が存在しない
+    } yield Point(point)).merge // 点数の取得まで完了できたらPointを返す。それ以外はエラーが返る。
   }
 
   println(find("taro")) // Point(90)
