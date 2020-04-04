@@ -1,9 +1,6 @@
-object AcademicResults extends  App {
+object AcademicResults extends App {
 
-  private[this] val results = Map(
-    "taro" -> Some(90),
-    "jiro" -> None
-  )
+  private[this] val results = Map("taro" -> Some(90), "jiro" -> None)
 
   sealed trait Result
   case class Point(point: Int) extends Result
@@ -12,13 +9,10 @@ object AcademicResults extends  App {
   case object ResultNotFound extends Error
 
   def find(name: String): Result = {
-    results.get(name) match {
-      case Some(pointOpt) => pointOpt match {
-        case Some(point) => Point(point)
-        case None => ResultNotFound
-      }
-      case None => StudentNotFound
-    }
+    (for {
+      student <- results.get(name).toRight(StudentNotFound)
+      result <- student.toRight(ResultNotFound)
+    } yield Point(result)).merge
   }
 
   println(find("taro")) // Point(90)
