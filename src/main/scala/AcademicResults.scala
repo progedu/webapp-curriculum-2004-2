@@ -12,13 +12,18 @@ object AcademicResults extends  App {
   case object ResultNotFound extends Error
 
   def find(name: String): Result = {
-    results.get(name) match {
-      case Some(pointOpt) => pointOpt match {
-        case Some(point) => Point(point)
-        case None => ResultNotFound
-      }
-      case None => StudentNotFound
-    }
+    (for {
+      pointOpt <- getPointOpt(name).right
+      point <-  getPoint(pointOpt).right
+    } yield Point(point)).merge
+  }
+
+  def getPointOpt(name: String): Either[Error, Option[Int]] = {
+    results.get(name).toRight(StudentNotFound)
+  }
+
+  def getPoint(pointOpt: Option[Int]): Either[Error, Int] ={
+    pointOpt.toRight(ResultNotFound)
   }
 
   println(find("taro")) // Point(90)
